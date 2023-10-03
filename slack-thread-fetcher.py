@@ -25,13 +25,18 @@ def fetch_text_from_slack_thread(thread_link):
             json_message = {}
             user_id = message.get('user')
             
-            # Fetching the entire user information
-            user_info = client.users_info(user=user_id)
+            # Fetching user information
+            user_info = client.users_info(user=user_id)['user']
             
             processed_text = message["text"]
             if processed_text.strip():
                 json_message['text'] = processed_text
-                json_message['user_info'] = user_info['user']  # Adding the entire user_info
+                json_message['user_info'] = {
+                    'id': user_info.get('id'),
+                    'name': user_info.get('name'),
+                    'real_name': user_info.get('real_name'),
+                    'display_name': user_info['profile'].get('display_name')
+                }
                 json_message['ts'] = message.get('ts')
                 json_messages.append(json_message)
 

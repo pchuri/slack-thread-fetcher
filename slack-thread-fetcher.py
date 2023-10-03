@@ -9,6 +9,8 @@ import os
 # Load .env file
 load_dotenv()
 
+user_cache = {}  # Initialize user cache
+
 def fetch_text_from_slack_thread(thread_link):
     try:
         bot_token = os.getenv("BOT_TOKEN")
@@ -28,13 +30,16 @@ def fetch_text_from_slack_thread(thread_link):
             # Fetch user info
             user_id = message.get('user')
             if user_id:
-                user_info = client.users_info(user=user_id)
-                json_message['user_info'] = {
-                    'id': user_info['user']['id'],
-                    'name': user_info['user']['name'],
-                    'real_name': user_info['user']['real_name'],
-                    'display_name': user_info['user']['profile']['display_name']
-                }
+                if user_id not in user_cache:  # If not cached, fetch and cache
+                    user_info = client.users_info(user=user_id)
+                    user_cache[user_id] = {
+                        'id': user_info['user']['id'],
+                        'name': user_info['user']['name'],
+                        'real_name': user_info['user']['real_name'],
+                        'display_name': user_info['user']['profile']['display_name']
+                    }
+
+                json_message['user_info'] = user_cache[user_id]  # Retrieve from cache
 
             json_message['ts'] = message.get('ts')
             json_messages.append(json_message)

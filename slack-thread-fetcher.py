@@ -9,14 +9,6 @@ import os
 # Load .env file
 load_dotenv()
 
-def remove_reactions(text):
-    reaction_pattern = re.compile(r':\w+:')
-    return reaction_pattern.sub('', text)
-
-def remove_urls(text):
-    url_pattern = re.compile(r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+')
-    return url_pattern.sub('', text)
-
 def fetch_text_from_slack_thread(thread_link):
     try:
         bot_token = os.getenv("BOT_TOKEN")
@@ -31,10 +23,15 @@ def fetch_text_from_slack_thread(thread_link):
 
         for message in messages:
             json_message = {}
-            processed_text = remove_urls(remove_reactions(message["text"]))
+            user_id = message.get('user')
+            
+            # Fetching the entire user information
+            user_info = client.users_info(user=user_id)
+            
+            processed_text = message["text"]
             if processed_text.strip():
                 json_message['text'] = processed_text
-                json_message['user'] = message.get('user')
+                json_message['user_info'] = user_info['user']  # Adding the entire user_info
                 json_message['ts'] = message.get('ts')
                 json_messages.append(json_message)
 
